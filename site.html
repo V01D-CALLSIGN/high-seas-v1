@@ -1,0 +1,330 @@
+/*
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catch the Snowflakes</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #87CEEB;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            display: block;
+        }
+        #menu, #game, #leaderboard {
+            display: none;
+        }
+        #menu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+        }
+        #counter {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 30px;
+            color: rgb(0, 0, 0);
+        }
+        #timer {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 30px;
+            color: rgb(0, 0, 0);
+        }
+        #level-banner {
+            position: absolute;
+            top: 50px;
+            width: 100%;
+            text-align: center;
+            font-size: 40px;
+            color: rgb(0, 0, 0);
+            font-weight: bold;
+        }
+        .vibrate {
+            animation: vibrate 0.5s linear;
+        }
+        @keyframes vibrate {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+        #leaderboard {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+        }
+        #leaderboard table {
+            margin-top: 20px;
+            border-collapse: collapse;
+            width: 50%;
+        }
+        #leaderboard table, #leaderboard th, #leaderboard td {
+            border: 1px solid white;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 20px;
+            cursor: pointer;
+            background-color: #008CBA;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #005f73;
+        }
+    </style>
+</head>
+<body>
+    <div id="menu">
+        <h1>Welcome to Catch the Snowflakes!</h1>
+        <p>Use the left and right arrow keys to move the tongue and catch as many ❄ snowflakes as you can! Avoid the obstacles to stay alive! Levels get harder as you progress!</p>
+        <button onclick="startGame()">Begin Challenge</button>
+    </div>
+
+    <div id="game">
+        <div id="level-banner">Level: 1</div>
+        <div id="counter">Score: 0</div>
+        <div id="timer">Time: 20</div>
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <div id="leaderboard">
+        <h1>Game Over!</h1>
+        <p>Your score: <span id="finalScore">0</span></p>
+        <p>Enter your name to save your score:</p>
+        <input type="text" id="username" placeholder="Your Name">
+        <button onclick="saveScore()">Submit</button>
+        <h2>Leaderboard</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Name</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody id="leaderboardTable">
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const menu = document.getElementById('menu');
+        const game = document.getElementById('game');
+        const leaderboard = document.getElementById('leaderboard');
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const levelBanner = document.getElementById('level-banner');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const tongue = {
+            x: canvas.width / 2,
+            y: canvas.height - 100,
+            width: 80,
+            height: 100,
+            speed: 10
+        };
+
+        const snowflakes = [];
+        const obstacles = [];
+        let score = 0;
+        let gameTime = 20; 
+        let level = 1;
+        let gameInterval;
+        let timerInterval;
+
+        function createSnowflake() {
+            snowflakes.push({
+                x: Math.random() * canvas.width,
+                y: -30,
+                speed: 2 + Math.random() * 3
+            });
+        }
+
+        function createObstacle() {
+            const obstacleType = Math.random();
+            let emoji = '🎁';
+
+            if (level === 2 && obstacleType > 0.5) {
+                emoji = '🪨'; 
+            } else if (level === 3) {
+                if (obstacleType > 0.7) {
+                    emoji = '📦'; 
+                } else if (obstacleType > 0.4) {
+                    emoji = '🪨';
+                }
+            }
+
+            obstacles.push({
+                x: Math.random() * canvas.width,
+                y: -30,
+                speed: 3 + Math.random() * 2,
+                type: emoji
+            });
+        }
+
+        function updateTongue() {
+            ctx.font = '100px Arial';
+            ctx.fillText('😋', tongue.x, tongue.y);
+        }
+
+        function updateSnowflakes() {
+            for (let i = snowflakes.length - 1; i >= 0; i--) {
+                const flake = snowflakes[i];
+                flake.y += flake.speed;
+
+                if (
+                    flake.y >= tongue.y &&
+                    flake.y <= tongue.y + tongue.height &&
+                    flake.x >= tongue.x &&
+                    flake.x <= tongue.x + tongue.width
+                ) {
+                    snowflakes.splice(i, 1);
+                    score++;
+                    updateScore();
+                } else if (flake.y > canvas.height) {
+                    snowflakes.splice(i, 1);
+                } else {
+                    ctx.fillStyle = 'white';
+                    ctx.font = '30px Arial';
+                    ctx.fillText('❄', flake.x, flake.y);
+                }
+            }
+        }
+
+        function updateObstacles() {
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obstacle = obstacles[i];
+                obstacle.y += obstacle.speed;
+
+                if (
+                    obstacle.y >= tongue.y &&
+                    obstacle.y <= tongue.y + tongue.height &&
+                    obstacle.x >= tongue.x &&
+                    obstacle.x <= tongue.x + tongue.width
+                ) {
+                    endGame();
+                    return;
+                } else if (obstacle.y > canvas.height) {
+                    obstacles.splice(i, 1);
+                } else {
+                    ctx.fillStyle = 'red';
+                    ctx.font = '30px Arial';
+                    ctx.fillText(obstacle.type, obstacle.x, obstacle.y);
+                }
+            }
+        }
+
+        function levelUp() {
+            level++;
+            if (level > 3) {
+                level = 3;
+            } else {
+                levelBanner.classList.add('vibrate');
+                setTimeout(() => levelBanner.classList.remove('vibrate'), 500);
+
+                if (level === 2) {
+                    gameTime = 40; 
+                } else if (level === 3) {
+                    gameTime = 60; 
+                }
+                updateTimer();
+            }
+            levelBanner.innerText = `Level: ${level}`;
+        }
+
+        function updateScore() {
+            document.getElementById('counter').innerText = `Score: ${score}`;
+        }
+
+        function updateTimer() {
+            document.getElementById('timer').innerText = `Time: ${gameTime}`;
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            updateTongue();
+            updateSnowflakes();
+            updateObstacles();
+        }
+
+        function gameLoop() {
+            draw();
+            createSnowflake();
+            if (Math.random() < 0.02 * level) createObstacle(); 
+        }
+
+        function endGame() {
+            clearInterval(gameInterval);
+            clearInterval(timerInterval);
+            document.getElementById('finalScore').innerText = score;
+            game.style.display = 'none';
+            leaderboard.style.display = 'flex';
+        }
+
+        function startGame() {
+            menu.style.display = 'none';
+            game.style.display = 'block';
+
+            gameInterval = setInterval(gameLoop, 1000 / 60); 
+
+            timerInterval = setInterval(() => {
+                gameTime--;
+                updateTimer();
+                if (gameTime <= 0) {
+                    if (level < 3) {
+                        levelUp();
+                    } else {
+                        endGame();
+                    }
+                }
+            }, 1000);
+        }
+
+        function saveScore() {
+            const username = document.getElementById('username').value || 'Anonymous';
+            const leaderboardTable = document.getElementById('leaderboardTable');
+            const newRow = document.createElement('tr');
+
+            newRow.innerHTML = `<td>${leaderboardTable.rows.length + 1}</td><td>${username}</td><td>${score}</td>`;
+            leaderboardTable.appendChild(newRow);
+
+            // Reset game
+            score = 0;
+            gameTime = 20;
+            level = 1;
+            updateScore();
+            updateTimer();
+
+            menu.style.display = 'flex';
+            leaderboard.style.display = 'none';
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowLeft' && tongue.x > 0) {
+                tongue.x -= tongue.speed;
+            } else if (event.key === 'ArrowRight' && tongue.x < canvas.width - tongue.width) {
+                tongue.x += tongue.speed;
+            }
+        });
+    </script>
+</body>
+</html>
