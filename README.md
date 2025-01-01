@@ -8,3 +8,4 @@
 ### If you can avoid anything thats NOT a snowflake, you can advance through 3 levels, which each have different obstacles. Make it through all the  way and add your score onto the leaderboard
 ### There is a timer on the top right that will motivate you to catch as many snowflakes as you can before the time is up
 ### Play this addicting game today! 
+### 6 levels ! Each have more obstacles and increasing difficulty !
