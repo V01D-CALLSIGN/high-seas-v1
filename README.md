@@ -9,3 +9,5 @@
 ### There is a timer on the top right that will motivate you to catch as many snowflakes as you can before the time is up
 ### Play this addicting game today! 
 ### 6 levels ! Each have more obstacles and increasing difficulty !
+
+https://rawcdn.githack.com/V01D-CALLSIGN/high-seas-v1/ad7ad72f0ec04fe56fe29fba0193d1cb8f8ed404/site.html
