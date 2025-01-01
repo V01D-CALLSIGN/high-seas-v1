@@ -1,4 +1,3 @@
-/*
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -171,12 +170,26 @@
                 } else if (obstacleType > 0.4) {
                     emoji = '🪨';
                 }
+            } else if (level === 4) {
+                if (obstacleType > 0.8) {
+                    emoji = '✈️'; 
+                } else if (obstacleType > 0.5) {
+                    emoji = '📦';
+                }
+            } else if (level === 5) {
+                if (obstacleType > 0.6) {
+                    emoji = '✈️';
+                } else {
+                    emoji = '🪨';
+                }
+            } else if (level === 6) {
+                emoji = '🔥'; 
             }
 
             obstacles.push({
                 x: Math.random() * canvas.width,
                 y: -30,
-                speed: 3 + Math.random() * 2,
+                speed: 3 + Math.random() * (2 + level),
                 type: emoji
             });
         }
@@ -235,8 +248,8 @@
 
         function levelUp() {
             level++;
-            if (level > 3) {
-                level = 3;
+            if (level > 6) {
+                level = 6;
             } else {
                 levelBanner.classList.add('vibrate');
                 setTimeout(() => levelBanner.classList.remove('vibrate'), 500);
@@ -245,6 +258,12 @@
                     gameTime = 40; 
                 } else if (level === 3) {
                     gameTime = 60; 
+                } else if (level === 4) {
+                    gameTime = 80;
+                } else if (level === 5) {
+                    gameTime = 100;
+                } else if (level === 6) {
+                    gameTime = 120;
                 }
                 updateTimer();
             }
@@ -290,7 +309,7 @@
                 gameTime--;
                 updateTimer();
                 if (gameTime <= 0) {
-                    if (level < 3) {
+                    if (level < 6) {
                         levelUp();
                     } else {
                         endGame();
