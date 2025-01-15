@@ -344,6 +344,93 @@
                 tongue.x += tongue.speed;
             }
         });
+        function createObstacle() {
+    const obstacleType = Math.random();
+    let emoji = '🎁';
+
+    if (level >= 2) {
+        if (obstacleType > 0.8) emoji = '✈️'; 
+        else if (obstacleType > 0.5) emoji = '📦'; 
+        else emoji = '🪨'; 
+    }
+    if (level >= 4 && obstacleType > 0.9) emoji = '🔥'; 
+
+    obstacles.push({
+        x: Math.random() * canvas.width,
+        y: -30,
+        speed: 3 + Math.random() * (2 + level),
+        type: emoji,
+        movePattern: level >= 5 ? (Math.random() > 0.5 ? 'zigzag' : 'straight') : 'straight',
+    });
+}
+
+function updateObstacles() {
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+        const obstacle = obstacles[i];
+        obstacle.y += obstacle.speed;
+
+        if (obstacle.movePattern === 'zigzag') {
+            obstacle.x += Math.sin(obstacle.y / 30) * 5; 
+        }
+
+        if (
+            obstacle.y >= tongue.y &&
+            obstacle.y <= tongue.y + tongue.height &&
+            obstacle.x >= tongue.x &&
+            obstacle.x <= tongue.x + tongue.width
+        ) {
+            endGame();
+            return;
+        } else if (obstacle.y > canvas.height) {
+            obstacles.splice(i, 1);
+        } else {
+            ctx.fillStyle = 'red';
+            ctx.font = '30px Arial';
+            ctx.fillText(obstacle.type, obstacle.x, obstacle.y);
+        }
+    }
+}
+
+function updateSnowflakes() {
+    for (let i = snowflakes.length - 1; i >= 0; i--) {
+        const flake = snowflakes[i];
+        flake.y += flake.speed;
+
+        if (
+            flake.y >= tongue.y &&
+            flake.y <= tongue.y + tongue.height &&
+            flake.x >= tongue.x &&
+            flake.x <= tongue.x + tongue.width
+        ) {
+            if (Math.random() < 0.1 * level) {
+                endGame(); // Fake snowflake caught
+                return;
+            }
+            snowflakes.splice(i, 1);
+            score++;
+            updateScore();
+        } else if (flake.y > canvas.height) {
+            snowflakes.splice(i, 1);
+        } else {
+            ctx.fillStyle = 'white';
+            ctx.font = '30px Arial';
+            ctx.fillText('❄', flake.x, flake.y);
+        }
+    }
+}
+
+function levelUp() {
+    level++;
+    if (level > 10) {
+        endGame(); // Game becomes unwinnable beyond level 10
+    }
+    levelBanner.innerText = `Level: ${level}`;
+    gameTime -= 2; 
+    if (gameTime <= 0) gameTime = 5; // Minimum time to survive
+    updateTimer();
+}
+
     </script>
 </body>
 </html>
+
